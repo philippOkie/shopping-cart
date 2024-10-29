@@ -1,17 +1,38 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
+
+import ProductCard from "./ProductCard";
 import './App.css'
 
+const BASE_URL = 'https://fakestoreapi.com' // process.env.REACT_APP_BASE_URL;
+
 function App() {
-  const [count, setCount] = useState(0)
-  const API_URL = 'https://fakestoreapi.com/products'
+  const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  const searchProducts = (title) => {
+    const filtered = products.filter(movie =>
+      movie.title.toLowerCase().includes(title.toLowerCase())
+    );
+
+    setFilteredProducts(filtered.sort((a, b) => a.title.localeCompare(b.title)));
+  };
+
+  const handleInputChange = (e) => {
+    const title = e.target.value;
+
+    setSearchTerm(title);
+    searchProducts(title);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(`${BASE_URL}/products`);
         const data = await response.json();
-        console.log(data);
+        
+        setProducts(data)
+        setFilteredProducts(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -21,27 +42,29 @@ function App() {
   }, []);
   
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div className="app"> 
+      <h1>Products</h1>
+
+      <input
+        className="search"
+        type="text"
+        value={searchTerm}
+        onChange={handleInputChange}
+        placeholder="Search for products..."
+      />
+        
+      {products?.length > 0 ? (
+        <div className="container">
+          {filteredProducts.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="empty">
+          <h2>No products found</h2>
+        </div>
+      )}
+
     </div>
   )
 }
